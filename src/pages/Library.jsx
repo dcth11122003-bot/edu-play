@@ -1,35 +1,48 @@
-import { useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import GameCard from '../components/GameCard.jsx'
-import SearchBar from '../components/SearchBar.jsx'
-import { topics, subjects, grades } from '../data/topics.js'
-import { useData } from '../data/DataContext.jsx'
-const PAGE = 6
-export default function Library() {
-  const [sp, setSp] = useSearchParams()
-  const { games } = useData()
-  const [show, setShow] = useState(PAGE)
-  const q = sp.get('q') || '', subject = sp.get('subject') || '', grade = sp.get('grade') || '', topic = sp.get('topic') || '', sort = sp.get('sort') || 'new'
-  const set = (k, v) => { const n = new URLSearchParams(sp); v ? n.set(k, v) : n.delete(k); setSp(n, { replace: true }); setShow(PAGE) }
+import { useState, useMemo } from "react";
+import Card from "../components/Card.jsx";
+import { SUBJECTS, TOPICS } from "../data/mockData.js";
+
+export default function Library({ games, go, q, setQ }) {
+  const [sub, ss] = useState("");
+  const [gr, sg] = useState("");
+  const [tp, st] = useState("");
+  const [so, sso] = useState("new");
   const list = useMemo(() => {
-    const s = q.trim().toLowerCase()
-    const r = games.filter((g) => (!s || g.title.toLowerCase().includes(s)) && (!subject || g.subject === subject) && (!grade || g.grade === +grade) && (!topic || g.topic === topic))
-    return r.sort((a, b) => (sort === 'name' ? a.title.localeCompare(b.title, 'vi') : b.createdAt.localeCompare(a.createdAt)))
-  }, [games, q, subject, grade, topic, sort])
+    const k = q.trim().toLowerCase();
+    const r = games.filter((g) =>
+      (!k || [g.name, g.subject, g.topic].join(" ").toLowerCase().includes(k)) &&
+      (!sub || g.subject === sub) &&
+      (!gr || String(g.grade) === gr) &&
+      (!tp || g.topic === tp));
+    return [...r].sort((a, b) => (so === "az" ? a.name.localeCompare(b.name, "vi") : b.order - a.order));
+  }, [games, q, sub, gr, tp, so]);
+
   return (
-    <div className="wrap sec">
-      <h1>Kho trò chơi</h1>
-      <SearchBar value={q} onChange={(v) => set('q', v)} />
-      <div className="filters">
-        <select value={subject} onChange={(e) => set('subject', e.target.value)}><option value="">Tất cả môn</option>{subjects.map((s) => <option key={s}>{s}</option>)}</select>
-        <select value={grade} onChange={(e) => set('grade', e.target.value)}><option value="">Tất cả lớp</option>{grades.map((g) => <option key={g} value={g}>Lớp {g}</option>)}</select>
-        <select value={topic} onChange={(e) => set('topic', e.target.value)}><option value="">Tất cả chủ đề</option>{topics.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select>
-        <select value={sort} onChange={(e) => set('sort', e.target.value)}><option value="new">Mới nhất</option><option value="name">Theo tên A–Z</option></select>
-        <button className="btn small ghost" onClick={() => { setSp({}); setShow(PAGE) }}>Xóa bộ lọc</button>
+    <>
+      <div className="sec"><h2>🎮 Kho trò chơi</h2><small>{list.length} trò chơi</small></div>
+      <div className="bar">
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="🔎 Tìm theo tên, môn, chủ đề…" />
+        <select value={sub} onChange={(e) => ss(e.target.value)}>
+          <option value="">Tất cả môn học</option>{SUBJECTS.map((s) => <option key={s.id}>{s.id}</option>)}
+        </select>
+        <select value={gr} onChange={(e) => sg(e.target.value)}>
+          <option value="">Tất cả lớp</option>{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>Lớp {n}</option>)}
+        </select>
+        <select value={tp} onChange={(e) => st(e.target.value)}>
+          <option value="">Tất cả chủ đề</option>{TOPICS.map((t) => <option key={t.id}>{t.id}</option>)}
+        </select>
+        <select value={so} onChange={(e) => sso(e.target.value)}>
+          <option value="new">Mới nhất</option><option value="az">Tên A → Z</option>
+        </select>
       </div>
-      <p className="muted">{list.length} trò chơi</p>
-      {list.length === 0 ? <div className="empty">Không tìm thấy trò chơi phù hợp. Hãy thử xóa bộ lọc.</div> : <div className="grid3">{list.slice(0, show).map((g) => <GameCard key={g.id} game={g} />)}</div>}
-      {show < list.length && <div className="center"><button className="btn" onClick={() => setShow(show + PAGE)}>Xem thêm</button></div>}
-    </div>
-  )
+      {list.length ? (
+        <div className="grid">{list.map((g) => <Card key={g.id} g={g} go={go} />)}</div>
+      ) : (
+        <div className="empty">
+          <div style={{ fontSize: "3.5rem" }}>🔍</div>
+          <h3>Chưa tìm thấy trò chơi nào</h3><p>Thử từ khóa khác nhé!</p>
+        </div>
+      )}
+    </>
+  );
 }

@@ -1,35 +1,51 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import SearchBar from '../components/SearchBar.jsx'
-import GameCard from '../components/GameCard.jsx'
-import LessonCard from '../components/LessonCard.jsx'
-import { topics } from '../data/topics.js'
-import { useData } from '../data/DataContext.jsx'
-const perks = [['Học mà chơi', 'Kiến thức được lồng vào trò chơi tương tác.'], ['Không cần tài khoản', 'Vào là chơi ngay trên trình duyệt.'], ['Bám sát chương trình', 'Chủ đề rõ ràng theo môn và lớp.']]
-export default function Home() {
-  const [q, setQ] = useState('')
-  const nav = useNavigate()
-  const { games, lessons } = useData()
+import { useState } from "react";
+import Card from "../components/Card.jsx";
+import { SUBJECTS, TOPICS } from "../data/mockData.js";
+
+export default function Home({ games, go, setQ }) {
+  const [q, sq] = useState("");
+  const submit = (e) => { e.preventDefault(); setQ(q); go("library"); };
   return (
     <>
-      <section className="hero"><div className="wrap hero-in">
-        <div>
-          <h1>HỌC VUI MỖI NGÀY – KHÁM PHÁ TRI THỨC</h1>
-          <p>Hàng loạt trò chơi và bài giảng giúp em yêu thích Địa lí và Khoa học mỗi ngày.</p>
-          <SearchBar value={q} onChange={setQ} onSubmit={() => nav(`/kho-tro-choi?q=${encodeURIComponent(q)}`)} />
-          <Link to="/kho-tro-choi" className="btn big">Khám phá kho trò chơi</Link>
+      <section className="hero">
+        <span className="fl" style={{ left: "6%", top: "14%" }}>⭐</span>
+        <span className="fl" style={{ right: "8%", top: "10%", animationDelay: "1s" }}>🚀</span>
+        <span className="fl" style={{ left: "12%", bottom: "10%", animationDelay: "2s" }}>🌈</span>
+        <span className="fl" style={{ right: "12%", bottom: "12%", animationDelay: "1.5s" }}>🪐</span>
+        <h1>Chơi vui – Học giỏi<br />cùng Vui Học Mỗi Ngày!</h1>
+        <p>Kho trò chơi và bài giảng thú vị giúp các bạn nhỏ khám phá thế giới ngay trên trình duyệt.</p>
+        <form className="search" onSubmit={submit}>
+          <input value={q} onChange={(e) => sq(e.target.value)} placeholder="🔎 Tìm trò chơi, môn học hoặc chủ đề…" aria-label="Tìm kiếm" />
+          <button className="btn sun" type="submit">Tìm</button>
+        </form>
+        <div className="chips">
+          {TOPICS.map((t) => (
+            <button key={t.id} className="chip" onClick={() => { setQ(t.id); go("library"); }}>{t.icon} {t.id}</button>
+          ))}
         </div>
-        <div className="hero-art" aria-hidden="true"><div className="planet">🌍</div><div className="orb o1" /><div className="orb o2" /><div className="orb o3" /></div>
-      </div></section>
-      <section className="wrap sec"><h2>Chủ đề học tập</h2>
-        <div className="grid3">{topics.map((t) => (
-          <Link key={t.id} to={`/kho-tro-choi?topic=${t.id}`} className={`topic ${t.color}`}>
-            <h3>{t.name}</h3><p>{t.desc}</p>
-            <small>{games.filter((g) => g.topic === t.id).length} trò chơi · {lessons.filter((l) => l.topic === t.id).length} bài giảng</small>
-          </Link>))}</div></section>
-      <section className="wrap sec"><h2>Trò chơi nổi bật</h2><div className="grid3">{games.filter((g) => g.featured).map((g) => <GameCard key={g.id} game={g} />)}</div></section>
-      <section className="wrap sec"><div className="row"><h2>Bài giảng mới</h2><Link to="/bai-giang">Xem tất cả →</Link></div><div className="grid3">{lessons.slice(0, 3).map((l) => <LessonCard key={l.id} lesson={l} />)}</div></section>
-      <section className="wrap sec"><h2>Vì sao chọn EDU PLAY?</h2><div className="grid3">{perks.map(([t, d]) => <div className="perk" key={t}><h3>{t}</h3><p>{d}</p></div>)}</div></section>
+        <div className="ctrl" style={{ justifyContent: "center", marginBottom: 0 }}>
+          <button className="btn pink" onClick={() => go("library")}>🎮 Kho trò chơi</button>
+          <button className="btn ghost" onClick={() => go("lessons")}>📖 Bài giảng</button>
+        </div>
+      </section>
+
+      <div className="sec"><h2>Chọn môn học</h2></div>
+      <div className="cats">
+        {SUBJECTS.map((s) => (
+          <button key={s.id} className="cat" style={{ background: s.c }} onClick={() => { setQ(s.id); go("library"); }}>
+            <b>{s.icon}</b><h3>{s.id}</h3>
+            <span>{s.d} · {games.filter((g) => g.subject === s.id).length} trò chơi</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="sec">
+        <h2>⭐ Trò chơi nổi bật</h2>
+        <button className="link" onClick={() => { setQ(""); go("library"); }}>Xem tất cả →</button>
+      </div>
+      <div className="grid">
+        {games.filter((g) => g.featured).slice(0, 8).map((g) => <Card key={g.id} g={g} go={go} />)}
+      </div>
     </>
-  )
+  );
 }

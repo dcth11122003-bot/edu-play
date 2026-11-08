@@ -1,46 +1,80 @@
-import { useState } from 'react'
-import { topics, subjects, grades } from '../data/topics.js'
-import { useData } from '../data/DataContext.jsx'
-const DEMO_CODE = '112233' // Chỉ phục vụ demo giao diện, KHÔNG phải bảo mật thật
-const empty = { title: '', subject: subjects[0], grade: 4, topic: topics[0].id, description: '', html: '' }
-function Form({ kind, item, onSave, onCancel }) {
-  const [f, setF] = useState(item || empty)
-  const set = (k) => (e) => setF({ ...f, [k]: k === 'grade' ? +e.target.value : e.target.value })
+import { useState } from "react";
+import { ADMIN_CODE, SUBJECTS, TOPICS } from "../data/mockData.js";
+
+export default function Admin({ custom, setCustom }) {
+  const [ok, sok] = useState(() => { try { return sessionStorage.getItem("adm") === "1" } catch (e) { return false } });
+  const [code, sc] = useState("");
+  const [err, se] = useState(false);
+  const blank = { name: "", topic: TOPICS[0].id, subject: SUBJECTS[0].id, grade: 4, type: "Chọn đáp án", html: "", cover: "" };
+  const [f, sf] = useState(blank);
+  const [eid, seid] = useState(null);
+
+  if (!ok)
+    return (
+      <div className="panel" style={{ maxWidth: 380, margin: "40px auto", textAlign: "center" }}>
+        <div style={{ fontSize: "3rem" }}>🔐</div>
+        <h2>Khu vực quản trị</h2>
+        <form className="f" onSubmit={(e) => {
+          e.preventDefault();
+          if (code === ADMIN_CODE) { sok(true); try { sessionStorage.setItem("adm", "1") } catch (x) {} } else se(true);
+        }}>
+          <input type="password" inputMode="numeric" value={code} onChange={(e) => { sc(e.target.value); se(false); }} placeholder="Nhập mã quản trị" />
+          {err && <small style={{ color: "#E5484D" }}>Mã chưa đúng, thử lại nhé.</small>}
+          <button className="btn" type="submit">Vào quản trị</button>
+        </form>
+      </div>
+    );
+
+  const up = (k) => (e) => sf({ ...f, [k]: e.target.value });
+  const pick = (e) => {
+    const fl = e.target.files[0];
+    if (!fl) return;
+    const r = new FileReader();
+    r.onload = () => sf((p) => ({ ...p, cover: r.result }));
+    r.readAsDataURL(fl);
+  };
+  const save = (e) => {
+    e.preventDefault();
+    if (!f.name.trim() || !f.html.trim()) return;
+    const g = { ...f, grade: +f.grade, emoji: "🎮" };
+    setCustom(eid
+      ? custom.map((c) => (c.id === eid ? { ...c, ...g } : c))
+      : [...custom, { ...g, id: "c" + Date.now(), order: 100 + custom.length, featured: true }]);
+    sf(blank); seid(null);
+  };
+
   return (
-    <form className="form" onSubmit={(e) => { e.preventDefault(); onSave(f) }}>
-      <h3>{f.id ? 'Chỉnh sửa' : 'Thêm'} {kind}</h3>
-      <label>Tên<input required value={f.title} onChange={set('title')} /></label>
-      <label>Môn học<select value={f.subject} onChange={set('subject')}>{subjects.map((s) => <option key={s}>{s}</option>)}</select></label>
-      <label>Lớp<select value={f.grade} onChange={set('grade')}>{grades.map((g) => <option key={g} value={g}>Lớp {g}</option>)}</select></label>
-      <label>Chủ đề / bài học<select value={f.topic} onChange={set('topic')}>{topics.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
-      <label>Mô tả<textarea required value={f.description} onChange={set('description')} /></label>
-      {kind === 'trò chơi' && <><label>Ảnh bìa (mô phỏng)<input type="file" accept="image/*" /></label><label>Mã HTML trò chơi (mô phỏng, chưa lưu)<textarea value={f.html || ''} onChange={set('html')} /></label></>}
-      <div className="row"><button className="btn small" type="submit">Lưu</button><button type="button" className="btn small ghost" onClick={onCancel}>Hủy</button></div>
-    </form>
-  )
-}
-function Table({ rows, onEdit, onDelete }) {
-  return <div className="list">{rows.map((r) => <div className="li" key={r.id}><span>{r.title}</span><span className="tags"><span>{r.subject}</span><span>Lớp {r.grade}</span></span><span><button className="btn small ghost" onClick={() => onEdit(r)}>Sửa</button> <button className="btn small danger" onClick={() => window.confirm(`Xóa "${r.title}"?`) && onDelete(r.id)}>Xóa</button></span></div>)}</div>
-}
-export default function Admin() {
-  const [ok, setOk] = useState(false), [code, setCode] = useState(''), [err, setErr] = useState('')
-  const [edit, setEdit] = useState(null) // {kind, item}
-  const { games, lessons, gameOps, lessonOps } = useData()
-  if (!ok) return (
-    <div className="wrap sec narrow"><form className="form" onSubmit={(e) => { e.preventDefault(); code === DEMO_CODE ? setOk(true) : setErr('Mã truy cập không đúng.') }}>
-      <h1>Đăng nhập quản trị</h1><label>Mã truy cập<input type="password" value={code} onChange={(e) => { setCode(e.target.value); setErr('') }} /></label>
-      {err && <p className="err">{err}</p>}<button className="btn">Đăng nhập</button><p className="muted">Demo giao diện: không phải cơ chế bảo mật thật.</p>
-    </form></div>)
-  const ops = edit?.kind === 'trò chơi' ? gameOps : lessonOps
-  return (
-    <div className="wrap sec"><div className="row"><h1>Bảng điều khiển</h1><button className="btn small ghost" onClick={() => { setOk(false); setCode('') }}>Đăng xuất</button></div>
-      <p className="note">Thao tác chỉ mô phỏng, dữ liệu mất khi tải lại trang.</p>
-      <div className="grid3"><div className="perk"><h3>{games.length}</h3><p>Tổng trò chơi</p></div><div className="perk"><h3>{lessons.length}</h3><p>Tổng bài giảng</p></div></div>
-      {edit && <Form kind={edit.kind} item={edit.item} onCancel={() => setEdit(null)} onSave={(f) => { ops.save(f); setEdit(null) }} />}
-      <div className="row"><h2>Trò chơi</h2><button className="btn small" onClick={() => setEdit({ kind: 'trò chơi' })}>Thêm trò chơi</button></div>
-      <Table rows={games} onEdit={(item) => setEdit({ kind: 'trò chơi', item })} onDelete={gameOps.remove} />
-      <div className="row"><h2>Bài giảng</h2><button className="btn small" onClick={() => setEdit({ kind: 'bài giảng' })}>Thêm bài giảng</button></div>
-      <Table rows={lessons} onEdit={(item) => setEdit({ kind: 'bài giảng', item })} onDelete={lessonOps.remove} />
-    </div>
-  )
+    <>
+      <div className="sec">
+        <h2>🛠️ Quản trị trò chơi</h2>
+        <button className="link" onClick={() => { try { sessionStorage.removeItem("adm") } catch (x) {} sok(false); }}>Đăng xuất</button>
+      </div>
+      <div className="panel">
+        <form className="f" onSubmit={save}>
+          <label>Tên trò chơi<input value={f.name} onChange={up("name")} required /></label>
+          <label>Môn học<select value={f.subject} onChange={up("subject")}>{SUBJECTS.map((s) => <option key={s.id}>{s.id}</option>)}</select></label>
+          <label>Bài học / chủ đề<select value={f.topic} onChange={up("topic")}>{TOPICS.map((t) => <option key={t.id}>{t.id}</option>)}</select></label>
+          <label>Lớp<select value={f.grade} onChange={up("grade")}>{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>Lớp {n}</option>)}</select></label>
+          <label>Dạng chơi<select value={f.type} onChange={up("type")}>{["Chọn đáp án", "Kéo thả", "Ghép hình"].map((n) => <option key={n}>{n}</option>)}</select></label>
+          <label>Ảnh bìa<input type="file" accept="image/*" onChange={pick} /></label>
+          {f.cover && <img src={f.cover} alt="Ảnh bìa" style={{ width: 120, borderRadius: 16 }} />}
+          <label>Mã HTML của trò chơi<textarea rows="6" value={f.html} onChange={up("html")} placeholder="Dán toàn bộ mã HTML vào đây…" required /></label>
+          <div className="ctrl" style={{ margin: 0 }}>
+            <button className="btn" type="submit">{eid ? "Lưu chỉnh sửa" : "Đăng trò chơi"}</button>
+            {eid && <button type="button" className="btn ghost" onClick={() => { sf(blank); seid(null); }}>Hủy</button>}
+          </div>
+        </form>
+      </div>
+      <div className="sec"><h3>Trò chơi đã đăng ({custom.length})</h3></div>
+      <div className="panel">
+        {custom.length ? custom.map((c) => (
+          <div className="row" key={c.id}>
+            <span>{c.name} <small>· {c.subject} · Lớp {c.grade}</small></span>
+            <button className="btn ghost" onClick={() => { sf({ ...c }); seid(c.id); window.scrollTo(0, 0); }}>Sửa</button>
+            <button className="btn pink" onClick={() => confirm("Xóa trò chơi này?") && setCustom(custom.filter((x) => x.id !== c.id))}>Xóa</button>
+          </div>
+        )) : <p style={{ color: "var(--mute)" }}>Chưa có trò chơi nào.</p>}
+      </div>
+    </>
+  );
 }

@@ -1,15 +1,19 @@
-import { useState } from 'react'
-import LessonCard from '../components/LessonCard.jsx'
-import { topics } from '../data/topics.js'
-import { useData } from '../data/DataContext.jsx'
-export default function Lessons() {
-  const { lessons } = useData()
-  const [topic, setTopic] = useState('')
-  const list = lessons.filter((l) => !topic || l.topic === topic)
+import { LESSONS, TOPICS } from "../data/mockData.js";
+
+export default function Lessons({ go, setQ }) {
   return (
-    <div className="wrap sec"><h1>Bài giảng lý thuyết</h1>
-      <div className="filters"><select value={topic} onChange={(e) => setTopic(e.target.value)}><option value="">Tất cả chủ đề</option>{topics.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
-      {list.length ? <div className="grid3">{list.map((l) => <LessonCard key={l.id} lesson={l} />)}</div> : <div className="empty">Chưa có bài giảng.</div>}
-    </div>
-  )
+    <>
+      <div className="sec"><h2>📖 Bài giảng lý thuyết</h2></div>
+      <div className="lessons">
+        {LESSONS.map((l, i) => (
+          <div className="panel" key={i}>
+            <div style={{ fontSize: "2.6rem" }}>{TOPICS[i].icon}</div>
+            <h3>Bài {i + 1}. {l.t}</h3>
+            <ul>{l.p.map((x) => <li key={x}>{x}</li>)}</ul>
+            <button className="btn" onClick={() => { setQ(l.t); go("library"); }}>Chơi để ôn bài</button>
+          </div>
+        ))}
+      </div>
+    </>
+  );
 }
