@@ -1,10 +1,10 @@
 const bg = (g) =>
   g.cover 
     ? { 
-        backgroundImage: `url(${g.cover})`,
-        backgroundSize: "cover",       // Ép ảnh thu nhỏ/phóng to vừa khít khung
+        backgroundImage: `url("${g.cover}")`, // Có thêm dấu ngoặc kép bọc link ảnh cho an toàn
+        backgroundSize: "cover",       // Ép ảnh thu nhỏ vừa khít thẻ
         backgroundPosition: "center",  // Canh ảnh ra chính giữa
-        backgroundRepeat: "no-repeat"  // Không lặp lại ảnh
+        backgroundRepeat: "no-repeat"  // Không để ảnh bị lặp lại
       } 
     : { 
         background: `linear-gradient(135deg,${g.grad || "#A29BFE,#6C5CE7"})` 
