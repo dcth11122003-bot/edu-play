@@ -4,12 +4,11 @@ import { topics } from '../data/topics.js'
 
 export default function GameCard({ game }) {
   const [open, setOpen] = useState(false)
-  const topic = topics.find((t) => t.id === game.topic)?.name
+  const topic = topics?.find((t) => t.id === game.topic)?.name || game.topic
 
   return (
     <>
       <article className="card">
-        {/* NÂNG CẤP 1: Kiểm tra nếu có ảnh cover thì hiện ảnh thật, không thì dùng màu mặc định */}
         {game.cover ? (
           <img 
             src={game.cover} 
@@ -33,9 +32,8 @@ export default function GameCard({ game }) {
           <div className="modal-c" style={{ maxWidth: '900px', width: '90%' }} onClick={(e) => e.stopPropagation()}>
             <h2>{game.title || game.name}</h2>
             <div className="tags"><span>{game.subject}</span><span>Lớp {game.grade}</span></div>
-            <p>{game.description}</p>
             
-            {/* NÂNG CẤP 2: Chạy trực tiếp mã HTML/3D của game ngay bên trong popup */}
+            {/* VÙNG CHẠY TRÒ CHƠI 3D */}
             {game.html ? (
               <iframe 
                 srcDoc={game.html} 
