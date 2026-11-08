@@ -24,7 +24,7 @@ export const DEMO = [
     name: "Mô phỏng Nhật - Nguyệt thực 3D",
     topic: "Mặt Trời, Trái Đất và Mặt Trăng",
     subject: "Khoa học",
-    grade: 5,
+    grade: 3,
     type: "Mô phỏng tương tác",
     emoji: "🪐",
     cover: "/1.jpg", // THAY TÊN ẢNH CỦA ÔNG VÀO ĐÂY (Giữ nguyên dấu / ở đầu)
