@@ -1,5 +1,14 @@
 const bg = (g) =>
-  g.cover ? { backgroundImage: `url(${g.cover})` } : { background: `linear-gradient(135deg,${g.grad || "#A29BFE,#6C5CE7"})` };
+  g.cover 
+    ? { 
+        backgroundImage: `url(${g.cover})`,
+        backgroundSize: "cover",       // Ép ảnh thu nhỏ/phóng to vừa khít khung
+        backgroundPosition: "center",  // Canh ảnh ra chính giữa
+        backgroundRepeat: "no-repeat"  // Không lặp lại ảnh
+      } 
+    : { 
+        background: `linear-gradient(135deg,${g.grad || "#A29BFE,#6C5CE7"})` 
+      };
 
 export default function Card({ g, go }) {
   return (
